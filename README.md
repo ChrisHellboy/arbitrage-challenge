@@ -1,4 +1,4 @@
-# SwissBord-challenge
+# SwissBorg-challenge
 ## Foreword
 In this repo, you will find 2 items:
 * [arbitrage_swissborg.py](https://github.com/ChrisHellboy/swissborg-challenge/blob/master/arbitrage_swissborg.py) : the program I developed in Python to answer the challenge described here: https://priceonomics.com/jobs/puzzle/
