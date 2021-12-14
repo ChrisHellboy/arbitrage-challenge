@@ -48,45 +48,31 @@ def build_graph(N, E):
         graph.edge.append(Edge())
     return graph
 
+# Method to return the key in integer from the index, a dictionary which contains each currency associated to a unique key
+def get_curr_int(val,index):
+    for key, value in index.items():
+         if val == value:
+            return key
 
-# Method to convert the currency to int, it will be used to help with the parsing of the lists
-def convert_to_int(currency):
-    if currency == 'USD': 
-        return 0
-    elif currency == 'EUR':
-        return 1
-    elif currency == 'JPY':
-        return 2
-    elif currency == 'BTC':
-        return 3
+# function to return currency name given an integer, i just created this method to have consistency in naming when using the index
+def get_curr_str(loop,index):
+    new_loop = []
+    for i in loop:
+        new_loop.append(index[i])
+    return new_loop
 
-
-# Method to convert the int back to string when all the negative loops are discovered
-def convert_to_str(currency):
-    if currency == 0: 
-        return 'USD'
-    elif currency == 1:
-        return 'EUR'
-    elif currency == 2:
-        return 'JPY'
-    elif currency == 3:
-        return 'BTC'
-
-
-# Method to loop through the list of predessors to identify the negative loop that can be used to exploit arbitrage
-def retrace_negative_loop(p, start):
-    arbitrageLoop = [start]
-    next_node = start
-    while True:
-        next_node = p[next_node]
-        if next_node not in arbitrageLoop:
-            arbitrageLoop.append(next_node)
+# Method to loop through the list of predessors of list of closest nodes to identify the negative loop that can be used to exploit arbitrage
+def get_path_negative_loop(pred, src_currency):
+    path = [src_currency]
+    next_node = src_currency
+    while pred:
+        next_node = pred[next_node]
+        if next_node not in path:
+            path.append(next_node)
         else:
-            arbitrageLoop.append(next_node)
-            arbitrageLoop = arbitrageLoop[arbitrageLoop.index(next_node):]
-            return arbitrageLoop
-
-
+            path.append(next_node)
+            path = path[path.index(next_node):]
+            return path
 
 #  Method called relaxation which will assign a new value when the distance of the currency out to the source if a smaller path has been found
 #  For each edge, curr_in is the currency being exchanged and curr_out is the currency post exchange, weight is the transformed exchange rate (-log(rates))
@@ -98,9 +84,9 @@ def relax(dist, pred, curr_in, curr_out, weight):
 
 
 # Method which aims to represent the algo of Bellman-Ford
-# Initialization: here we setup 2 lists: 
+# Initialization: here we setup 2 lists:
 #     - 'dist' is the list which contains the distance between the node[src_currency] and all the other nodes (we setup all distance to infinity since we don't know them apart from the src_currency which is set to 0)
-#     - 'pred' is the list which contains the name of currency is being exchanged (which 'starts' the negative loop) 
+#     - 'pred' is the list which contains the name of currency is being exchanged (which 'starts' the negative loop)
 def bellmanford_negative_loop(graph, src_currency):
     N = graph.Nodes
     E = graph.Edges
@@ -108,41 +94,48 @@ def bellmanford_negative_loop(graph, src_currency):
     pred = [None]*N
     dist[src_currency] = 0
 
-# First loop 
-    for i in range(1,N):
+# First loop
+    for i in range(0,N):
         for j in range(E):
             curr_i = graph.edge[j].curr_in
             curr_o = graph.edge[j].curr_out
             weight = graph.edge[j].distance
             relax(dist, pred, curr_i, curr_o, weight)
-            
-# This part will check       
+
+# This part will check
     for i in range(E):
         curr_i = graph.edge[i].curr_in
         curr_o = graph.edge[i].curr_out
         weight = graph.edge[i].distance
         if (dist[curr_i] != math.inf and dist[curr_i] + weight < dist[curr_o]):
-            return True, retrace_negative_loop(pred,src_currency)
+            return True, get_path_negative_loop(pred,src_currency)
     return False, None
 
 
 def Main():
     raw_rates = get_raw_rates()
     cleaned_rates = clean_rates(raw_rates)
-    amount_of_nodes = 4
-    amount_of_edges = 16
-    graph = build_graph(4,16)
-    
+    nodes = []
+    for key in cleaned_rates:
+        if key[0] not in nodes:
+            nodes.append(key[0])
+    keys = [i for i in range(len(nodes))]
+# Creation of a dictionnary which contains the currency name(nodes) as well as its identifier used in the graph(key)
+    index = dict(zip(keys,nodes))
+    amount_of_nodes = len(nodes)
+    amount_of_edges = len(cleaned_rates)
+    graph = build_graph(amount_of_nodes,amount_of_edges)
+
 # fill the graph with each edge
     for i in range(graph.Edges):
-        graph.edge[i].curr_in = convert_to_int(cleaned_rates[i][0])
-        graph.edge[i].curr_out = convert_to_int(cleaned_rates[i][1])
+        graph.edge[i].curr_in = get_curr_int(cleaned_rates[i][0],index)
+        graph.edge[i].curr_out = get_curr_int(cleaned_rates[i][1],index)
         graph.edge[i].distance = cleaned_rates[i][2]
-        
-# Starting from each node, run the Bellman-Ford algorithm to detect different cycles which could lead to arbitrage
+
+# Starting from each node, run the Bellman-Ford algorithm to detect different cycles which could lead to arbitrage path
     negative_loops = []
     for i in range(graph.Nodes):
-        currency = convert_to_str(i)
+        currency = index[i]
         status, negative_loop = bellmanford_negative_loop(graph,i)
         if status == True:
             if negative_loop not in negative_loops and not None:
@@ -150,10 +143,10 @@ def Main():
         else:
             print("No opportunity seen when starting with ",currency,)
 # Display the identified loops with the currency name
-    cleaned = []
+    cleaned_loop = []
     for i in range(len(negative_loops)):
-        a=list(map(convert_to_str,negative_loops[i]))
-        cleaned.append(a)
-    print(cleaned)  
+        a=get_curr_str(negative_loops[i],index)
+        cleaned_loop.append(a)
+    print(cleaned_loop)
 
 Main()
