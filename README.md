@@ -1,8 +1,8 @@
-# swissborg-challenge
+# SwissBord-challenge
 ## Foreword
 In this repo, you will find 2 items:
-* arbitrage_swissborg.py : the program I developed in Python to answer the challenge described here: https://priceonomics.com/jobs/puzzle/
-* what-is-CHSB.md : a simple text file which gives my answer the following question: What is the CHSB and what are its key features. I kept it simple and mostly used source material issued on SwissBorg website.
+* [arbitrage_swissborg.py](https://github.com/ChrisHellboy/swissborg-challenge/blob/master/arbitrage_swissborg.py) : the program I developed in Python to answer the challenge described here: https://priceonomics.com/jobs/puzzle/
+* [what-is-CHSB.md](https://github.com/ChrisHellboy/swissborg-challenge/blob/master/what-is-CHSB.md) : a simple text file which gives my answer the following question: What is the CHSB and what are its key features. I kept it simple and mostly used source material issued on SwissBorg website.
 
 ## Running the python script
 Try running the following command:
