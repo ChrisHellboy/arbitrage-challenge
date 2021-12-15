@@ -82,7 +82,6 @@ def relax(dist, pred, curr_in, curr_out, weight):
         dist[curr_out] = dist[curr_in] + weight
         pred[curr_out] = curr_in
 
-
 # Method which aims to represent the algo of Bellman-Ford
 # Initialization: here we setup 2 lists:
 #     - 'dist' is the list which contains the distance between the node[src_currency] and all the other nodes (we setup all distance to infinity since we don't know them apart from the src_currency which is set to 0)
@@ -94,7 +93,7 @@ def bellmanford_negative_loop(graph, src_currency):
     pred = [None]*N
     dist[src_currency] = 0
 
-# First loop
+# First loop which will parse the different edges and 'relax' each of them given a source node as input to calculate the shortest path to this source from each node
     for i in range(0,N):
         for j in range(E):
             curr_i = graph.edge[j].curr_in
@@ -102,7 +101,7 @@ def bellmanford_negative_loop(graph, src_currency):
             weight = graph.edge[j].distance
             relax(dist, pred, curr_i, curr_o, weight)
 
-# This part will check
+# This part will check and actually return the shortest path possible
     for i in range(E):
         curr_i = graph.edge[i].curr_in
         curr_o = graph.edge[i].curr_out
@@ -142,6 +141,7 @@ def Main():
                 negative_loops.append(negative_loop)
         else:
             print("No opportunity seen when starting with ",currency,)
+
 # Display the identified loops with the currency name
     cleaned_loop = []
     for i in range(len(negative_loops)):
@@ -149,4 +149,17 @@ def Main():
         cleaned_loop.append(a)
     print(cleaned_loop)
 
+# Parse the identified loops to show the benefit that can be made
+    for single_loop in cleaned_loop:
+        benefits = []
+        print('\nNew opportunity detected:')
+        for curr, next in zip(single_loop, single_loop[1:]):
+            for i in range(amount_of_edges):
+                if (cleaned_rates[i][0] == curr and cleaned_rates[i][1] == next):
+                    rate = math.exp(-cleaned_rates[i][2])
+                    benefits.append(rate)
+                    print ('From ',curr,' to ',next,' with rate: ',rate)
+        print ('Benefit:',math.prod(benefits))
+
+# Execute the main
 Main()
